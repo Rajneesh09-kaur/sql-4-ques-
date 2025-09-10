@@ -1,0 +1,59 @@
+-- Start the transaction
+-- Part 1
+START TRANSACTION;
+
+CREATE TABLE FeePayments (
+    payment_id INT PRIMARY KEY,        -- Unique ID for each payment
+    student_name VARCHAR(100) NOT NULL, -- Student name
+    amount DECIMAL(10,2) NOT NULL,      -- Payment amount
+    payment_date DATE NOT NULL          -- Payment date
+);
+
+-- Insert multiple payment records
+INSERT INTO FeePayments (payment_id, student_name, amount, payment_date)
+VALUES (1, 'Ashish', 5000.00, '2024-06-01');
+
+INSERT INTO FeePayments (payment_id, student_name, amount, payment_date)
+VALUES (2, 'Smaran', 4500.00, '2024-06-02');
+
+INSERT INTO FeePayments (payment_id, student_name, amount, payment_date)
+VALUES (3, 'Vaibhav', 5500.00, '2024-06-03');
+
+-- If everything is successful, commit the transaction
+COMMIT;
+
+-- To check inserted records
+SELECT * FROM FeePayments;
+
+-- Part 2
+-- Start another transaction
+START TRANSACTION;
+
+-- First insert is valid
+INSERT INTO FeePayments VALUES (4, 'Kiran', 4000.00, '2024-06-04');
+
+-- Second insert will fail: duplicate ID (1) + negative amount
+INSERT INTO FeePayments VALUES (1, 'Ashish', -3000.00, '2024-06-05');
+
+-- Since an error occurs, we rollback
+ROLLBACK;
+
+DELETE FROM FeePayments
+WHERE payment_id = 4;
+
+
+SELECT * FROM FeePayments;
+
+-- Part 3
+START TRANSACTION;
+INSERT INTO FeePayments VALUES (6, 'Manish', 4000.00, '2024-06-06');
+INSERT INTO FeePayments VALUES (7, 'Rahul', 3500.00, '2024-06-07');
+ROLLBACK;
+SELECT * FROM FeePayments;
+
+-- Part 4
+START TRANSACTION;
+INSERT INTO FeePayments VALUES (8, 'Rohit', 7000.00, '2024-06-08');
+INSERT INTO FeePayments VALUES (9, 'Neha', 7500.00, '2024-06-09');
+COMMIT;
+SELECT * FROM FeePayments;
