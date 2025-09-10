@@ -1,0 +1,73 @@
+-- Part A
+CREATE TABLE StudentEnrollments (
+    student_id INT PRIMARY KEY,
+    student_name VARCHAR(100),
+    course_id VARCHAR(10),
+    enrollment_date DATE
+);
+
+INSERT INTO StudentEnrollments VALUES
+(1, 'Ashish', 'CSE101', '2024-06-01'),
+(2, 'Smaran', 'CSE102', '2024-06-01'),
+(3, 'Vaibhav', 'CSE103', '2024-06-01');
+
+select * from StudentEnrollments;
+
+START TRANSACTION;
+
+-- Locks student_id = 1
+UPDATE StudentEnrollments
+SET enrollment_date = '2024-07-01'
+WHERE student_id = 1;
+
+-- Waits for student_id = 2 (locked by User B later)
+UPDATE StudentEnrollments
+SET enrollment_date = '2024-07-05'
+WHERE student_id = 2;
+
+START TRANSACTION;
+
+-- Locks student_id = 2
+UPDATE StudentEnrollments
+SET enrollment_date = '2024-08-01'
+WHERE student_id = 2;
+
+-- Waits for student_id = 1 (locked by User A earlier)
+UPDATE StudentEnrollments
+SET enrollment_date = '2024-08-05'
+WHERE student_id = 1;
+
+-- Part B
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+START TRANSACTION;
+
+-- User A sees snapshot (old value)
+SELECT * FROM StudentEnrollments WHERE student_id = 1;
+-- Result: enrollment_date = '2024-06-01'
+
+START TRANSACTION;
+UPDATE StudentEnrollments
+SET enrollment_date = '2024-07-10'
+WHERE student_id = 1;
+COMMIT;
+
+SELECT * FROM StudentEnrollments WHERE student_id = 1;
+-- Still sees '2024-06-01' (old snapshot, not blocked)
+
+-- Part C
+START TRANSACTION;
+SELECT * FROM StudentEnrollments WHERE student_id = 1 FOR UPDATE;
+-- Locks row until commit
+
+SELECT * FROM StudentEnrollments WHERE student_id = 1;
+-- BLOCKED until User A commits
+
+START TRANSACTION;
+UPDATE StudentEnrollments
+SET enrollment_date = '2024-07-15'
+WHERE student_id = 1;
+-- Not yet committed
+
+START TRANSACTION;
+SELECT * FROM StudentEnrollments WHERE student_id = 1;
+-- Sees old value: '2024-06-01'
